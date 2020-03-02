@@ -80,8 +80,6 @@ def extract_names(filename):
             ret_str += i + '\n'
         return ret_str
 
-# extract_names('baby*.html')
-
 
 def create_parser():
     """Create a cmd line parser object with 2 argument definitions"""
