@@ -18,7 +18,7 @@ import os
 
 """
 Author: Patrick Buzzo
-Assistance: Derek Barnes
+Assistance: Derek Barnes, Bryan Fernandez, Jake Hershey
 """
 
 
@@ -32,6 +32,7 @@ def extract_names(filename):
     names_dict = {}
     new_lst = []
     year = ''
+    baby_list = []
     if filename == 'baby*.html':
         filename = '*'
     else:
@@ -41,44 +42,64 @@ def extract_names(filename):
         for i in os.listdir('babies/'):
             file_path = 'babies/' + i
             year = i[4:8]
-            print(year)
             with open(file_path, "r") as f:
+                year = re.findall(r'\d{4}', filename)
+                new_lst.append(year[0])
                 for i in f.readlines():
                     if re.search(r'<td*?>(\d*)', i):
                         adding_str = ''
                         finder = re.search(r'<td*?>(\d*)', i)
                         baby_names = re.findall(r'<td*?>[A-Z]{1}\w*', i)
                         for i in baby_names:
-                            adding_str = finder.group(1) + ' ' + i[4:]
-                            names.append(adding_str)
-                            adding_str = ''
+                            if i not in baby_list:
+                                baby_list.append(i)
+                                adding_str = finder.group(1) + ' ' + i[4:]
+                                names.append(adding_str)
+                                adding_str = ''
+                            else:
+                                continue
             for i in names:
                 k = i.split(' ')
                 names_dict[k[1]] = k[0]
-            for i in sorted(names_dict):
-                new_lst.append((i + ' ' + names_dict[i]))
-            for i in new_lst:
-                print(i)
+            result = {}
+            for key, value in sorted(names_dict.items()):
+                if value not in result.values():
+                    result[key] = value
+            for k, v in sorted(result.items()):
+                new_lst.append((k + ' ' + v))
+        return new_lst
     else:
         with open(filename, "r") as f:
+            year = re.findall(r'\d{4}', filename)
+            new_lst.append(year[0])
             for i in f.readlines():
                 if re.search(r'<td*?>(\d*)', i):
                     adding_str = ''
                     finder = re.search(r'<td*?>(\d*)', i)
                     baby_names = re.findall(r'<td*?>[A-Z]{1}\w*', i)
                     for i in baby_names:
-                        adding_str = finder.group(1) + ' ' + i[4:]
-                        names.append(adding_str)
-                        adding_str = ''
+                        if i not in baby_list:
+                            baby_list.append(i)
+                            adding_str = finder.group(1) + ' ' + i[4:]
+                            names.append(adding_str)
+                            adding_str = ''
+                        else:
+                            continue
         for i in names:
             k = i.split(' ')
             names_dict[k[1]] = k[0]
-        for i in sorted(names_dict):
-            new_lst.append((i + ' ' + names_dict[i]))
-        ret_str = year + '\n'
-        for i in new_lst:
-            ret_str += i + '\n'
-        return ret_str
+        result = {}
+        for key, value in names_dict.items():
+            # print(key)
+            if key not in sorted(result.keys()):
+                result[key] = value
+        # print(sorted(result.keys()))
+        for k, v in sorted(result.items()):
+            new_lst.append((k + ' ' + v))
+        return new_lst
+
+
+extract_names('baby1990.html')
 
 
 def create_parser():
@@ -111,9 +132,21 @@ def main(args):
     if create_summary:
         if file_list[0] == 'baby*.html':
             for i in os.listdir('babies/'):
-                timing = extract_names(i)
+                extraction = extract_names(i)
                 with open(i + '.summary', "w") as f:
-                    f.write(timing)
+                    for k in extraction:
+                        f.write(k + '\n')
+        else:
+            for item in file_list:
+                timing = extract_names(item)
+                with open(item + '.summary', "w") as f:
+                    for k in timing:
+                        f.write(k + '\n')
+    else:
+        for item in file_list:
+            answer = extract_names(item)
+            text = '\n'.join(answer) + '\n'
+            print(text[:-1])
 
 
 if __name__ == '__main__':
